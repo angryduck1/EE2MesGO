@@ -7,7 +7,6 @@ type UserInfo struct {
 
 	Name         string `gorm:"uniqueIndex"`
 	PasswordHash string
-	DeviceToken  string `gorm:"uniqueIndex"`
 }
 
 type DeviceInfo struct {
