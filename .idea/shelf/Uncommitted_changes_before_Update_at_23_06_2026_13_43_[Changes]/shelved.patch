@@ -1,0 +1,93 @@
+Index: .idea/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+deleted file mode 100644
+--- a/.idea/.gitignore	(revision 3b56e39397002d57825727bc9d3fee08098d57fb)
++++ /dev/null	(revision 3b56e39397002d57825727bc9d3fee08098d57fb)
+@@ -1,10 +0,0 @@
+-# Default ignored files
+-/shelf/
+-/workspace.xml
+-# Editor-based HTTP Client requests
+-/httpRequests/
+-# Ignored default folder with query files
+-/queries/
+-# Datasource local storage ignored files
+-/dataSources/
+-/dataSources.local.xml
+Index: keys/localhost+1.pem
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/keys/localhost+1.pem b/keys/localhost+1.pem
+new file mode 100644
+--- /dev/null	(date 1781848766000)
++++ b/keys/localhost+1.pem	(date 1781848766000)
+@@ -0,0 +1,25 @@
++-----BEGIN CERTIFICATE-----
++MIIEQzCCAqugAwIBAgIRAONhsNUsgBGHE54TMcfRBNYwDQYJKoZIhvcNAQELBQAw
++fzEeMBwGA1UEChMVbWtjZXJ0IGRldmVsb3BtZW50IENBMSowKAYDVQQLDCFhbmdy
++eWR1Y2twY1xhbmdyeWR1Y2tAYW5ncnlkdWNrcGMxMTAvBgNVBAMMKG1rY2VydCBh
++bmdyeWR1Y2twY1xhbmdyeWR1Y2tAYW5ncnlkdWNrcGMwHhcNMjYwNjE5MDU1OTI0
++WhcNMjgwOTE5MDU1OTI0WjBVMScwJQYDVQQKEx5ta2NlcnQgZGV2ZWxvcG1lbnQg
++Y2VydGlmaWNhdGUxKjAoBgNVBAsMIWFuZ3J5ZHVja3BjXGFuZ3J5ZHVja0Bhbmdy
++eWR1Y2twYzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL4wPUOgYJFo
++xLLgmdy3db1EmIPqXProbCN8G6CwWbh5P/t8HVjspkIkTWfQI4nbHhufDF1lSNG9
++2DxEbwCGJMZbc3981uZXJqxML0GDXlOoSyuPkHSALFpPozMTgMj4kwFcPyHPFeKo
++16EEN7cktF9oryklzzsZLSyiNe6HOUVcjPl+LefQ6dduVpY+DOzFqlEg9XTooHUS
++YFz1DWJXtLNRIxYSv7yCZnjSXe4BpNMtG+Rc1Avo5TQTM+eWqa3vv/HD7zw5ZNH2
++zgOnOs+5TUVZXlupnLOzRJLLoDHXK/QqTOmRdkAjGgv05L9sQoMNkVjLy8lI0I0j
++qgxf3uPFm6kCAwEAAaNkMGIwDgYDVR0PAQH/BAQDAgWgMBMGA1UdJQQMMAoGCCsG
++AQUFBwMBMB8GA1UdIwQYMBaAFFexQOQkf4EKic/iH+w9o7IIO0b3MBoGA1UdEQQT
++MBGCCWxvY2FsaG9zdIcEfwAAATANBgkqhkiG9w0BAQsFAAOCAYEAQtdl1MwiM2dB
++P18DoUuND9hSFFWrRAeteDnY8sJ52BigINiJ0v7EuEbDVORgGotLBiNRH1BmZfkT
++5kXvw4cyAZScvNfh4p2TkeFXoE1WADvitDZPF1wtvduJM2vzhubjsoawAeBpyIOG
++oob1nfatub5SRO0kBTZIPibUpOQEwb8d0BfykBvskDB54YOddeCpvifYpLOUgV5Q
++Z4wca/T5dV5V2C0g2guuE3y6UVcux6aBdZ3eehgjWmwWh0qv4auTNjjo9ZsxoC0s
++IF/WVI5Q1EdYQTbEja1MeE+7koc6absFlRilh9wjIHaN5Iv7+Jap4zhl34m20Uhp
++lRIarbuJN4WhDD5Ff5xM1nz4Fykd+q53FgVmW7AY/waxOD7CAYxuC5kG0346WXMF
++0tb2Rv7DMl2swTqFWc+uMYLjgNs0vodAdH5L1sivqe03Mp6wypJXRKueURrXDkXt
++hyvUOGRV+wa1xfMqMGfoDR+zcEdKDri8T/5QLCDD0+xoVigcwOnX
++-----END CERTIFICATE-----
+Index: keys/localhost+1-key.pem
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/keys/localhost+1-key.pem b/keys/localhost+1-key.pem
+new file mode 100644
+--- /dev/null	(date 1781848766000)
++++ b/keys/localhost+1-key.pem	(date 1781848766000)
+@@ -0,0 +1,28 @@
++-----BEGIN PRIVATE KEY-----
++MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC+MD1DoGCRaMSy
++4Jnct3W9RJiD6lz66GwjfBugsFm4eT/7fB1Y7KZCJE1n0COJ2x4bnwxdZUjRvdg8
++RG8AhiTGW3N/fNbmVyasTC9Bg15TqEsrj5B0gCxaT6MzE4DI+JMBXD8hzxXiqNeh
++BDe3JLRfaK8pJc87GS0sojXuhzlFXIz5fi3n0OnXblaWPgzsxapRIPV06KB1EmBc
++9Q1iV7SzUSMWEr+8gmZ40l3uAaTTLRvkXNQL6OU0EzPnlqmt77/xw+88OWTR9s4D
++pzrPuU1FWV5bqZyzs0SSy6Ax1yv0KkzpkXZAIxoL9OS/bEKDDZFYy8vJSNCNI6oM
++X97jxZupAgMBAAECggEBALwpr8Mjfcb/F3Q+IButapBJuHbyvPEEWFC3LgJJ10pa
++s4GU5tgesdLIZciqtS5jmiMLtUkFtwjDwZbGweeL0ABrZBaipV6YpMtcSHiRhxZP
++b6d2Tx3j3X2wQq96wTSUMaTr5g4F+woXr9Y+/Px2FPo78OhN3vwCSZ5aEe+e23uR
++g8kRgPVlhHO2o7QjtdmsBavKd+iYovq0TDD1NeY+taPmY7A4td2UZYlO4NoVs1L3
++9+hWGQjo6BUISg6o9wfXnHDSxurtSbUULD9P4pfFSlIBhE3erwJib6jzXMs7693q
++Tq7jai6PILFZqb++j+MSZGVqaoxPS3mZm/1sW/FgsM0CgYEA3uUtRnTxuuaCQu41
++0oQSbI8+F6hvZRjg/pFDDL8yslGlJEl7162aZXav5jMoD3Z/5MXTHBkeXd7GcwRb
++eumK+Z0yPRLlvlBe+caGO5nD2es1VWzeh8PYrck9VdqEhsnGBXZwam+G5n0L7LfB
++cFJ4Na+/HGIyK2cr1+WPBk5hBkcCgYEA2m9/4E+JgNCa/31YmDrCSWC2J1yyW1Db
++PV0/5Rq5+xg4/RZRPk1t+KOkyWIzrDxIuqdbOPwa8kqSK8xc5d8d5A4QhLbi3MoF
++JIlEKQszJj7pDw0Qgxezoq+QgJ6BvUk6DuX2mi9Cl1QSasevTsYmS88VbT040GTQ
++2XSrd3IvFo8CgYBsUSK3Yo02Ll6O+APf0Z7CcrnR9WBs2LI+A4l54FBap6KBB9TO
++8uZc+FhyndmR6hwsqJX2yZ4gL+pwamWqTWPj+ag4Vb6fxZ7h8r+4pviuJcc9RDK/
++90SM74aG+jH87oD0lqH6l0gPKiVpW8L9OpaAQG+282E+Bl0gBcaDYgN0cQKBgEa2
++kc8r8HejEIplKakeXIckp9NWTucA5fiXl3ezj0GaNdi4wNRKfK9hSpdnExNO8Lx8
++MSvhcVe+jFNhdTF1aVfKtc5A5nBTdha92TLwTT60Xv5gXFgT9DNWYpFAvv9oFUN9
++bre7VPNoZA3tVvNJclxYTbdvelT8TiAXhOrGLDhBAoGBAJctTmp6xKxHUHkl+nZh
++TL2dQydGmRjscKDfpkUMxdUNM3xKEYDg5kBxdXRGUkXXUB+7mApoZedBOFxjJ06n
++5b9MZynZzeWP/cIBtl0q8HWE1hu3Jvy0txuBL2Pbsf0uiXEOnm4Zu4oh9EeXBGY4
++Sam1PHwH74yzMGaV1+sEQJhp
++-----END PRIVATE KEY-----

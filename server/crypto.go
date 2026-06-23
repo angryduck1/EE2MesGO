@@ -35,3 +35,12 @@ func generateDeviceToken() (string, error) {
 
 	return token.String(), nil
 }
+
+func generateDeviceToken() (string, error) {
+	token, err := uuid.NewRandom()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate device token: %v", err)
+	}
+
+	return token.String(), nil
+}
