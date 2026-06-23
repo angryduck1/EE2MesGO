@@ -5,18 +5,31 @@ import (
 	"time"
 )
 
-func (server *Server) insertNewUser(ctx context.Context, name, password string) error {
+func (server *Server) insertNewUser(ctx context.Context, name, password string) (string, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 
 	defer cancel()
 
 	hash := hashPassword(password)
+	
+	deviceToken, err := generateDeviceToken()
+	if err != nil {
+		return "", err
+	}
 
-	newUser := UserInfo{Name: name, PasswordHash: hash}
+	newUser := UserInfo{
+		Name:         name,
+		PasswordHash: hash,
+		DeviceToken:  deviceToken,
+	}
 
 	e := server.DB.WithContext(dbCtx).Create(&newUser).Error
 
-	return e
+	if e != nil {
+		return "", e
+	}
+
+	return deviceToken, nil
 }
 
 func (server *Server) getUser(ctx context.Context, name, password string) (bool, error) {
@@ -37,4 +50,19 @@ func (server *Server) getUser(ctx context.Context, name, password string) (bool,
 	match, err := matchPassword(password, passwordHash)
 
 	return match, err
+}
+
+func (server *Server) getUserByToken(ctx context.Context, deviceToken string) (*UserInfo, error) {
+	dbCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+
+	defer cancel()
+
+	var userInfo UserInfo
+
+	err := server.DB.WithContext(dbCtx).First(&userInfo, "device_token = ?", deviceToken).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &userInfo, nil
 }
