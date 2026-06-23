@@ -42,22 +42,7 @@ func (server *Server) Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := ResponseInfo{
-		Status:  "ok",
-		Code:    "SUCCESSFUL_REGISTER",
-		Message: "Successful register to account",
-	}
-
-	w.WriteHeader(http.StatusOK)
-	if e := json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":      response.Status,
-		"code":        response.Code,
-		"message":     response.Message,
-		"deviceToken": deviceToken,
-	}); e != nil {
-		log.Printf("Registration response error: %v", e)
-		return
-	}
+	sendAuthMessage(w, http.StatusOK, "ok", "SUCCESSFUL_REGISTER", "Successful register to account", deviceToken)
 }
 
 func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
