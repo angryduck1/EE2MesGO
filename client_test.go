@@ -47,4 +47,17 @@ func TestRegistration(t *testing.T) {
 	fmt.Println(body)
 
 	srv.Registration(rr, r)
+
+	srv.Registration(rr, r)
+	
+	var response map[string]interface{}
+	if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+	
+	if deviceToken, ok := response["deviceToken"]; ok {
+		fmt.Printf("generated device token: %v\n", deviceToken)
+	} else {
+		t.Error("device token not found in response")
+	}
 }

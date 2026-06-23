@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/google/uuid"
 )
 
 func hashPassword(password string) string {
@@ -24,4 +25,13 @@ func matchPassword(password string, passwordHash string) (bool, error) {
 	}
 
 	return r, e
+}
+
+func generateDeviceToken() (string, error) {
+	token, err := uuid.NewRandom()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate device token: %v", err)
+	}
+
+	return token.String(), nil
 }

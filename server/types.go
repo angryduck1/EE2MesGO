@@ -7,6 +7,7 @@ type UserInfo struct {
 
 	Name         string
 	PasswordHash string
+	DeviceToken  string `gorm:"uniqueIndex"`
 }
 type RegistrationInfo struct {
 	Name     string `json:"name"`

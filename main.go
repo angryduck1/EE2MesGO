@@ -31,8 +31,11 @@ func main() {
 
 	http.HandleFunc("/registration", srv.Registration)
 	http.HandleFunc("/login", srv.Login)
+	http.HandleFunc("/validate-token", srv.ValidateDeviceToken)
 
 	e := http.ListenAndServeTLS("localhost:8080", "./keys/localhost+1.pem", "./keys/localhost+1-key.pem", nil)
+
+	// e := http.ListenAndServe("localhost:8080", nil)
 
 	if e != nil {
 		log.Fatalf("Fatal error running server: %v", e.Error())
