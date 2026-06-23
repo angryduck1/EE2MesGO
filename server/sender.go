@@ -16,3 +16,19 @@ func sendMessage(w http.ResponseWriter, statusCode int, status string, code stri
 		return
 	}
 }
+
+func sendAuthMessage(w http.ResponseWriter, statusCode int, status string, code string, message string, deviceToken string) {
+	w.WriteHeader(statusCode)
+
+	response := ResponseInfo{Status: status, Code: code, Message: message}
+
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":      response.Status,
+		"code":        response.Code,
+		"message":     response.Message,
+		"deviceToken": deviceToken,
+	}); err != nil {
+		log.Printf("sendAuthMessage error: %v", err)
+		return
+	}
+}

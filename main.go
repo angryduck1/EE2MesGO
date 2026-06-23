@@ -1,10 +1,11 @@
 package main
 
 import (
-	server "FirstBackend/server"
 	"fmt"
 	"log"
 	"net/http"
+
+	server "EE2MesGO/server"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -31,10 +32,12 @@ func main() {
 
 	http.HandleFunc("/registration", srv.Registration)
 	http.HandleFunc("/login", srv.Login)
+	http.HandleFunc("/validate-token", srv.ValidateDeviceToken)
 
 	e := http.ListenAndServeTLS("localhost:8080", "./keys/localhost+1.pem", "./keys/localhost+1-key.pem", nil)
 
 	if e != nil {
 		log.Fatalf("Fatal error running server: %v", e.Error())
 	}
+
 }

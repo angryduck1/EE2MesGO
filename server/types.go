@@ -5,8 +5,17 @@ import "gorm.io/gorm"
 type UserInfo struct {
 	gorm.Model
 
-	Name         string
+	Name         string `gorm:"uniqueIndex"`
 	PasswordHash string
+}
+
+type DeviceInfo struct {
+	gorm.Model
+
+	DeviceToken string `gorm:"uniqueIndex"`
+
+	UserID uint     `gorm:"index"`
+	User   UserInfo `gorm:"foreignKey:UserID"`
 }
 type RegistrationInfo struct {
 	Name     string `json:"name"`
@@ -21,4 +30,11 @@ type ResponseInfo struct {
 
 type Server struct {
 	DB *gorm.DB
+}
+type SyncInfo struct {
+	Payload []byte
+
+	newChat     chan []byte
+	newMessages chan []byte
+	Activity    chan []byte
 }
