@@ -105,7 +105,7 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 
 		sendAuthMessage(w, http.StatusOK, "ok", "SUCCESSFUL_LOGIN", "Successful login to account", deviceToken)
 	} else {
-		sendMessage(w, http.StatusUnauthorized, "ok", "LOGIN_FAIL", "Fail login to account")
+		sendMessage(w, http.StatusUnauthorized, "error", "LOGIN_FAIL", "Fail login to account")
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)

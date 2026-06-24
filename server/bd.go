@@ -2,7 +2,10 @@ package server
 
 import (
 	"context"
+	"errors"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 func (server *Server) insertNewUser(ctx context.Context, name, password string) (string, error) {
@@ -40,7 +43,9 @@ func (server *Server) getUser(ctx context.Context, name, password string) (bool,
 
 	e := server.DB.WithContext(dbCtx).First(&userInfo, "name = ?", name).Error
 
-	if e != nil {
+	if errors.Is(e, gorm.ErrRecordNotFound) {
+		return false, UserInfo{}, nil
+	} else if e != nil {
 		return false, UserInfo{}, e
 	}
 
