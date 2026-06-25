@@ -32,7 +32,18 @@ func main() {
 
 	http.HandleFunc("/registration", srv.Registration)
 	http.HandleFunc("/login", srv.Login)
-	http.HandleFunc("/validate-token", srv.ValidateDeviceToken)
+	
+	mgr := server.NewManager()
+
+	http.HandleFunc("/validate-token", func(w http.ResponseWriter, r *http.Request) {
+		srv.ValidateDeviceToken(mgr, w, r)
+	})
+	http.HandleFunc("/poll", func(w http.ResponseWriter, r *http.Request) {
+		srv.LongPoll(mgr, w, r)
+	})
+	http.HandleFunc("/poll/send", func(w http.ResponseWriter, r *http.Request) {
+		srv.PollSend(mgr, w, r)
+	})
 
 	e := http.ListenAndServeTLS("localhost:8080", "./keys/localhost+1.pem", "./keys/localhost+1-key.pem", nil)
 

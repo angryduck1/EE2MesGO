@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 
@@ -109,49 +110,44 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (server *Server) ValidateDeviceToken(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		sendMessage(w, http.StatusUnauthorized, "error", "BAD_REQUEST", "Invalid request")
+func (server *Server) ValidateDeviceToken(mgr *Manager, w http.ResponseWriter, r *http.Request) {
+	sessionID := r.URL.Query().Get("deviceToken")
+	if sessionID == "" {
+		sendMessage(w, http.StatusBadRequest, "error", "BAD_REQUEST", "Missing sessionId")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
-	var req struct {
-		DeviceToken string `json:"deviceToken"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		sendMessage(w, http.StatusBadRequest, "error", "BAD_REQUEST", "Invalid request")
-		return
-	}
-
-	user, err := server.getUserByToken(r.Context(), req.DeviceToken)
+	user, err := server.getUserByToken(r.Context(), sessionID)
 	if err != nil {
+		if errors.Is(r.Context().Err(), context.Canceled) {
+			return
+		}
+
 		sendMessage(w, http.StatusUnauthorized, "error", "INVALID_TOKEN", "Invalid device token")
 
 		return
 	}
 
-	response := map[string]interface{}{
-		"status":  "ok",
-		"code":    "SUCCESSFUL_TOKEN",
-		"message": "Successful validate token",
-		"user": map[string]interface{}{
-			"id":   user.ID,
-			"name": user.Name,
-		},
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
-
 	conn, err := upgrader.Upgrade(w, r, nil)
-
 	if err != nil {
 		log.Printf("websocket upgrade error: %v", err)
 		return
 	}
 
-	clientWebSocketActivity(conn)
+	mgr.AddSession(sessionID, user.ID, user.Name, conn)
+
+	log.Printf("user %s connected via websocket", user.Name)
+
+	welcome, _ := json.Marshal(map[string]interface{}{
+		"status": "ok",
+		"code":   "SUCCESSFUL_TOKEN",
+		"data": map[string]interface{}{
+			"id":   user.ID,
+			"name": user.Name,
+		},
+	})
+
+	conn.WriteMessage(websocket.TextMessage, welcome)
+
+	clientWebSocketActivity(mgr, sessionID, conn)
 }
