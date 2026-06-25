@@ -8,11 +8,47 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/gorilla/websocket"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+func GetNameTest(conn *websocket.Conn) {
+	getNameResp := map[string]interface{}{"code": 900, "data": ""}
+
+	getNameRespBuf, err := json.Marshal(getNameResp)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = conn.WriteMessage(websocket.TextMessage, getNameRespBuf)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	messageType, message, err := conn.ReadMessage()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if messageType == websocket.TextMessage {
+
+		var messageJSON interface{}
+		err := json.Unmarshal(message, &messageJSON)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(messageJSON)
+	}
+}
 
 func RegisterTest(ts *httptest.Server) string {
 	var bodyReq = map[string]interface{}{"name": "meow", "password": "12345"}
@@ -63,6 +99,39 @@ func ValidToken(ts *httptest.Server, deviceToken string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	ws := "ws" + strings.TrimPrefix(ts.URL, "http") + "/validate-token?" + "deviceToken=" + deviceToken
+
+	conn, _, err := websocket.DefaultDialer.Dial(ws, nil)
+
+	defer conn.Close()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		messageType, message, err := conn.ReadMessage()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if messageType == websocket.TextMessage {
+
+			var messageJSON interface{}
+			err := json.Unmarshal(message, &messageJSON)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Println(messageJSON)
+
+			GetNameTest(conn)
+		}
+	}
+
 }
 
 func TestWebSocket(t *testing.T) {
@@ -82,12 +151,16 @@ func TestWebSocket(t *testing.T) {
 
 	srv := &server.Server{DB: db}
 
+	mgr := server.NewManager()
+
 	fmt.Println("Successful connect to database!")
 
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/login", srv.Login)
-	mux.HandleFunc("/validate-token", srv.ValidateDeviceToken)
+	mux.HandleFunc("/validate-token", func(w http.ResponseWriter, r *http.Request) {
+		srv.ValidateDeviceToken(mgr, w, r)
+	})
 
 	ts := httptest.NewServer(mux)
 
