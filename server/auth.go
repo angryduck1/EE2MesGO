@@ -107,36 +107,14 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 	} else {
 		sendMessage(w, http.StatusUnauthorized, "error", "LOGIN_FAIL", "Fail login to account")
 	}
-
-	conn, err := upgrader.Upgrade(w, r, nil)
-
-	if err != nil {
-		log.Printf("websocket upgrade error: %v", err)
-		return
-	}
-
-	defer func() {
-		if err := conn.Close(); err != nil {
-			log.Printf("Conn close error: %v", err)
-		}
-	}()
-
-	for {
-		messageType, _, err := conn.NextReader()
-
-		if err != nil {
-			log.Printf("websocket error: %v", err)
-			return
-		}
-
-		switch messageType {
-		case 2:
-
-		}
-	}
 }
 
 func (server *Server) ValidateDeviceToken(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		sendMessage(w, http.StatusUnauthorized, "error", "BAD_REQUEST", "Invalid request")
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
 	var req struct {
@@ -156,7 +134,9 @@ func (server *Server) ValidateDeviceToken(w http.ResponseWriter, r *http.Request
 	}
 
 	response := map[string]interface{}{
-		"status": "ok",
+		"status":  "ok",
+		"code":    "SUCCESSFUL_TOKEN",
+		"message": "Successful validate token",
 		"user": map[string]interface{}{
 			"id":   user.ID,
 			"name": user.Name,
@@ -165,4 +145,13 @@ func (server *Server) ValidateDeviceToken(w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+
+	if err != nil {
+		log.Printf("websocket upgrade error: %v", err)
+		return
+	}
+
+	clientWebSocketActivity(conn)
 }
