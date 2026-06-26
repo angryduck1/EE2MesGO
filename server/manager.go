@@ -28,13 +28,14 @@ const (
 type TaskCode int
 
 type Task struct {
-	SessionID string
-	Code      TaskCode
-	Payload   []byte
+	Session *Session
+	Code    TaskCode
+	Payload []byte
 }
 
 type Session struct {
 	UserID     uint
+	SessionID  string
 	UserName   string
 	Conn       *websocket.Conn
 	LastActive time.Time
@@ -78,6 +79,7 @@ func (m *Manager) AddSession(sessionID string, userID uint, userName string, con
 	m.sessions[sessionID] = &Session{
 		UserID:     userID,
 		UserName:   userName,
+		SessionID:  sessionID,
 		Conn:       conn,
 		LastActive: time.Now(),
 		OutQueue:   make(chan []byte, PollQueueSize),
@@ -105,16 +107,7 @@ func (m *Manager) GetSession(sessionID string) (*Session, bool) {
 }
 
 func (m *Manager) Enqueue(sessionID string, code TaskCode, payload []byte) {
-	select {
-	case m.taskQueue <- Task{SessionID: sessionID, Code: code, Payload: payload}:
-	default:
-		log.Printf("task queue full, dropping task for session %s code %d", sessionID, code)
-	}
-}
-
-// Отправляет по ws, если Conn == nil то добавляет в очередь на отправку poll
-func (m *Manager) Send(sessionId string, data []byte) {
-	s, ok := m.GetSession(sessionId)
+	s, ok := m.GetSession(sessionID)
 	if !ok {
 		return
 	}
@@ -122,11 +115,23 @@ func (m *Manager) Send(sessionId string, data []byte) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	select {
+	case m.taskQueue <- Task{Session: s, Code: code, Payload: payload}:
+	default:
+		log.Printf("task queue full, dropping task for session %s code %d", s.SessionID, code)
+	}
+}
+
+// Отправляет по ws, если Conn == nil то добавляет в очередь на отправку poll
+func (m *Manager) Send(s *Session, data []byte) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.LastActive = time.Now()
 
 	if s.Conn != nil {
 		if err := s.Conn.WriteMessage(websocket.TextMessage, data); err != nil {
-			log.Printf("ws send error session %s: %v", sessionId, err)
+			log.Printf("ws send error session %s: %v", s.SessionID, err)
 			s.Conn = nil
 		} else {
 			return
@@ -136,7 +141,7 @@ func (m *Manager) Send(sessionId string, data []byte) {
 	select {
 	case s.OutQueue <- data:
 	default:
-		log.Printf("poll queue full for session %s", sessionId)
+		log.Printf("poll queue full for session %s", s.SessionID)
 	}
 }
 
@@ -148,29 +153,27 @@ func (m *Manager) worker(id int) {
 }
 
 func (m *Manager) handleTask(task Task) {
-	s, ok := m.GetSession(task.SessionID)
-	if !ok {
-		return
-	}
+	s := task.Session
+
 	s.mu.Lock()
 	s.LastActive = time.Now()
 	s.mu.Unlock()
 
 	switch task.Code {
 	case CodeNewChat:
-		m.handleNewChat(task.SessionID, s, task.Payload)
+		m.handleNewChat(s, task.Payload)
 	case CodeSync:
-		m.handleSync(task.SessionID, s, task.Payload)
+		m.handleSync(s, task.Payload)
 	case CodeMessage:
-		m.handleMessage(task.SessionID, s, task.Payload)
+		m.handleMessage(s, task.Payload)
 	case CodeGetName:
-		m.handleGetName(task.SessionID, s)
+		m.handleGetName(s)
 	default:
-		log.Printf("unknown task code %d for session %s", task.Code, task.SessionID)
+		log.Printf("unknown task code %d for session %s", task.Code)
 	}
 }
 
-func (m *Manager) handleNewChat(sessionID string, s *Session, payload []byte) {
+func (m *Manager) handleNewChat(s *Session, payload []byte) {
 	// TODO: логика создания чата
 
 	log.Printf("new_chat from %s", s.UserName)
@@ -180,10 +183,10 @@ func (m *Manager) handleNewChat(sessionID string, s *Session, payload []byte) {
 		"code":   CodeNewChat,
 		"data":   "",
 	})
-	m.Send(sessionID, resp)
+	m.Send(s, resp)
 }
 
-func (m *Manager) handleMessage(sessionID string, s *Session, payload []byte) {
+func (m *Manager) handleMessage(s *Session, payload []byte) {
 	// TODO: логика сообщения
 	log.Printf("new_message from %s", s.UserName)
 
@@ -192,10 +195,10 @@ func (m *Manager) handleMessage(sessionID string, s *Session, payload []byte) {
 		"code":   CodeMessage,
 		"data":   "",
 	})
-	m.Send(sessionID, resp)
+	m.Send(s, resp)
 }
 
-func (m *Manager) handleSync(sessionID string, s *Session, payload []byte) {
+func (m *Manager) handleSync(s *Session, payload []byte) {
 	// TODO: логика синка
 	log.Printf("sync from %s", s.UserName)
 
@@ -204,16 +207,16 @@ func (m *Manager) handleSync(sessionID string, s *Session, payload []byte) {
 		"code":   CodeSync,
 		"data":   []interface{}{},
 	})
-	m.Send(sessionID, resp)
+	m.Send(s, resp)
 }
 
-func (m *Manager) handleGetName(sessionID string, s *Session) {
+func (m *Manager) handleGetName(s *Session) {
 	resp, _ := json.Marshal(map[string]interface{}{
 		"status": "get_name",
 		"code":   CodeGetName,
 		"data":   map[string]string{"name": s.UserName},
 	})
-	m.Send(sessionID, resp)
+	m.Send(s, resp)
 }
 
 func (m *Manager) cleanupLoop() {
