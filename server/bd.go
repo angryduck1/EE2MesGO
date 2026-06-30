@@ -10,25 +10,33 @@ import (
 
 func (server *Server) insertNewUser(ctx context.Context, name, password string) (string, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-
 	defer cancel()
 
 	hash := hashPassword(password)
+
+	newUser := UserInfo{
+		Name:         name,
+		PasswordHash: hash,
+	}
+
+	result := server.DB.WithContext(dbCtx).Create(&newUser)
+	if result.Error != nil {
+		return "", result.Error
+	}
 
 	deviceToken, err := generateDeviceToken()
 	if err != nil {
 		return "", err
 	}
 
-	newUser := DeviceInfo{DeviceToken: deviceToken, User: UserInfo{
-		Name:         name,
-		PasswordHash: hash,
-	}}
+	newDevice := DeviceInfo{
+		DeviceToken: deviceToken,
+		UserID:      newUser.ID,
+	}
 
-	e := server.DB.WithContext(dbCtx).Create(&newUser).Error
-
-	if e != nil {
-		return "", e
+	result = server.DB.WithContext(dbCtx).Create(&newDevice)
+	if result.Error != nil {
+		return "", result.Error
 	}
 
 	return deviceToken, nil
@@ -36,7 +44,6 @@ func (server *Server) insertNewUser(ctx context.Context, name, password string) 
 
 func (server *Server) getUser(ctx context.Context, name, password string) (bool, UserInfo, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-
 	defer cancel()
 
 	var userInfo UserInfo
@@ -58,7 +65,6 @@ func (server *Server) getUser(ctx context.Context, name, password string) (bool,
 
 func (server *Server) getUserByToken(ctx context.Context, deviceToken string) (*UserInfo, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-
 	defer cancel()
 
 	var deviceInfo DeviceInfo
@@ -73,10 +79,12 @@ func (server *Server) getUserByToken(ctx context.Context, deviceToken string) (*
 
 func (server *Server) addNewDevice(ctx context.Context, userInfo UserInfo, deviceToken string) error {
 	dbCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-
 	defer cancel()
 
-	newDevice := DeviceInfo{DeviceToken: deviceToken, UserID: userInfo.ID}
+	newDevice := DeviceInfo{
+		DeviceToken: deviceToken,
+		UserID:      userInfo.ID,
+	}
 
 	err := server.DB.WithContext(dbCtx).Create(&newDevice).Error
 

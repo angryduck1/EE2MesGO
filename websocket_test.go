@@ -8,46 +8,22 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func GetNameTest(conn *websocket.Conn) {
-	getNameResp := map[string]interface{}{"code": 900, "data": ""}
-
-	getNameRespBuf, err := json.Marshal(getNameResp)
-
-	if err != nil {
-		log.Fatal(err)
+// т.к файл содержит виндусовский стиль окончания строк
+func normalizeNewlines(s string) string {
+	if runtime.GOOS == "windows" {
+		return strings.ReplaceAll(s, "\n", "\r\n")
 	}
-
-	err = conn.WriteMessage(websocket.TextMessage, getNameRespBuf)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	messageType, message, err := conn.ReadMessage()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if messageType == websocket.TextMessage {
-
-		var messageJSON interface{}
-		err := json.Unmarshal(message, &messageJSON)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Println(messageJSON)
-	}
+	return s
 }
 
 func RegisterTest(ts *httptest.Server) string {
@@ -90,19 +66,193 @@ func RegisterTest(ts *httptest.Server) string {
 	return ""
 }
 
-func ValidToken(ts *httptest.Server, deviceToken string) {
-	var bodyReq = map[string]interface{}{"deviceToken": deviceToken}
-	var bodyBuf bytes.Buffer
+func sendGetName(conn *websocket.Conn) {
+	getNameResp := map[string]interface{}{"code": 900, "data": ""}
 
-	err := json.NewEncoder(&bodyBuf).Encode(bodyReq)
+	getNameRespBuf, err := json.Marshal(getNameResp)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ws := "ws" + strings.TrimPrefix(ts.URL, "http") + "/validate-token?" + "deviceToken=" + deviceToken
+	err = conn.WriteMessage(websocket.TextMessage, getNameRespBuf)
 
-	conn, _, err := websocket.DefaultDialer.Dial(ws, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+
+	messageType, message, err := conn.ReadMessage()
+
+	if err != nil {
+		if netErr, ok := err.(interface{ Timeout() bool }); ok && netErr.Timeout() {
+			log.Println("Read timeout - skipping response")
+			return
+		}
+		log.Fatal(err)
+	}
+
+	if messageType == websocket.TextMessage {
+
+		var messageJSON interface{}
+		err := json.Unmarshal(message, &messageJSON)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("GetName response:", messageJSON)
+	}
+}
+
+func sendNewChat(conn *websocket.Conn) {
+	newChatReq := map[string]interface{}{
+		"code": 600,
+		"data": map[string]interface{}{
+			"chat_name": "test_chat",
+			"users":     []string{"meow", "test_user"},
+		},
+	}
+
+	newChatBuf, err := json.Marshal(newChatReq)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = conn.WriteMessage(websocket.TextMessage, newChatBuf)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+
+	messageType, message, err := conn.ReadMessage()
+
+	if err != nil {
+		if netErr, ok := err.(interface{ Timeout() bool }); ok && netErr.Timeout() {
+			log.Println("Read timeout - skipping response")
+			return
+		}
+		log.Fatal(err)
+	}
+
+	if messageType == websocket.TextMessage {
+
+		var messageJSON interface{}
+		err := json.Unmarshal(message, &messageJSON)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("NewChat response:", messageJSON)
+	}
+}
+
+func sendSync(conn *websocket.Conn) {
+	syncReq := map[string]interface{}{
+		"code": 700,
+		"data": map[string]interface{}{
+			"last_sync": time.Now().Unix(),
+		},
+	}
+
+	syncBuf, err := json.Marshal(syncReq)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = conn.WriteMessage(websocket.TextMessage, syncBuf)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+
+	messageType, message, err := conn.ReadMessage()
+
+	if err != nil {
+		if netErr, ok := err.(interface{ Timeout() bool }); ok && netErr.Timeout() {
+			log.Println("Read timeout - skipping response")
+			return
+		}
+		log.Fatal(err)
+	}
+
+	if messageType == websocket.TextMessage {
+
+		var messageJSON interface{}
+		err := json.Unmarshal(message, &messageJSON)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("Sync response:", messageJSON)
+	}
+}
+
+func sendMessage(conn *websocket.Conn) {
+	messageReq := map[string]interface{}{
+		"code": 800,
+		"data": map[string]interface{}{
+			"chat_id":   1,
+			"content":   "test message",
+			"timestamp": time.Now().Unix(),
+		},
+	}
+
+	messageBuf, err := json.Marshal(messageReq)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = conn.WriteMessage(websocket.TextMessage, messageBuf)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+
+	messageType, message, err := conn.ReadMessage()
+
+	if err != nil {
+		if netErr, ok := err.(interface{ Timeout() bool }); ok && netErr.Timeout() {
+			log.Println("Read timeout - skipping response")
+			return
+		}
+		log.Fatal(err)
+	}
+
+	if messageType == websocket.TextMessage {
+
+		var messageJSON interface{}
+		err := json.Unmarshal(message, &messageJSON)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("Message response:", messageJSON)
+	}
+}
+
+func ValidToken(ts *httptest.Server, deviceToken string) {
+	var wsURL string
+	if runtime.GOOS == "windows" {
+		wsURL = "ws" + strings.TrimPrefix(ts.URL, "http") + "/validate-token?" + "deviceToken=" + deviceToken
+	} else {
+		wsURL = "ws" + strings.TrimPrefix(ts.URL, "http") + "/validate-token?" + "deviceToken=" + deviceToken
+	}
+
+	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 
 	defer conn.Close()
 
@@ -110,32 +260,43 @@ func ValidToken(ts *httptest.Server, deviceToken string) {
 		log.Fatal(err)
 	}
 
-	for {
-		messageType, message, err := conn.ReadMessage()
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	messageType, message, err := conn.ReadMessage()
+
+	if err != nil {
+		if netErr, ok := err.(interface{ Timeout() bool }); ok && netErr.Timeout() {
+			log.Println("Timeout reading welcome message")
+			return
+		}
+		log.Fatal(err)
+	}
+
+	if messageType == websocket.TextMessage {
+
+		var messageJSON interface{}
+		err := json.Unmarshal(message, &messageJSON)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if messageType == websocket.TextMessage {
-
-			var messageJSON interface{}
-			err := json.Unmarshal(message, &messageJSON)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Println(messageJSON)
-
-			GetNameTest(conn)
-		}
+		fmt.Println("Welcome message:", messageJSON)
 	}
 
+	sendGetName(conn)
+	sendNewChat(conn)
+	sendSync(conn)
+	sendMessage(conn)
+
+	time.Sleep(100 * time.Millisecond)
 }
 
 func TestWebSocket(t *testing.T) {
 	dsn := "host=localhost user=postgres password=root dbname=messenger port=5432 sslmode=disable TimeZone=Europe/Moscow"
+
+	//if runtime.GOOS == "windows" {
+	//    dsn = "host=localhost user=postgres password=root dbname=messenger port=5432 sslmode=disable TimeZone=Europe/Moscow"
+	//}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 

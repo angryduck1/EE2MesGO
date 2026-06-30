@@ -20,7 +20,7 @@ func main() {
 		log.Fatalf("Fail open bd: %v", err.Error())
 	}
 
-	err = db.AutoMigrate(&server.UserInfo{})
+	err = db.AutoMigrate(&server.UserInfo{}, &server.DeviceInfo{})
 
 	if err != nil {
 		log.Fatalf("Fail migrate bd: %v", err.Error())
@@ -52,5 +52,4 @@ func main() {
 	if e != nil {
 		log.Fatalf("Fatal error running server: %v", e.Error())
 	}
-
 }
